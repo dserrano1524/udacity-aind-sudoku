@@ -12,12 +12,22 @@ def cross(A, B):
 
 # This method  receives rows 'ABCDEFGHI' and columns '123456789'
 def get_diagonal(rows, columns):
+    """
+    Cross rows and columns on an iteration to obtain the diagonal
+    Input: Rows = 'ABCDEFGHI' and columns = '123456789'
+    Output: List of diagonal boxes
+    """
     diagonal_boxes = []
     for i in range(len(rows)):
         diagonal_boxes.append(rows[i] + columns[i])
     return diagonal_boxes
 # This method  receives rows 'ABCDEFGHI' and columns '123456789'
 def get_inv_diagonal(rows, columns):
+    """
+    Cross rows and columns on an iteration to obtain the diagonal
+    Input: Rows = 'ABCDEFGHI' and columns = '123456789'
+    Output: List of inverteddiagonal boxes
+    """
     diagonal_boxes = []
     j = len(rows) - 1
     for i in range(len(rows)):
@@ -48,96 +58,6 @@ def assign_value(values, box, value):
         assignments.append(values.copy())
     return values
 
-def naked_twins_fail(values):
-    # NOT USED!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # NOT USED!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # NOT USED!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # Candidate twins are boxes where digits length are size 2
-    candidate_twins = [box for box in values.keys() if len(values[box]) == 2]
-    # We create a dictionary that will contain our naked twins
-    naked_twins = {}
-    # We map digits to pairs of twins
-    for box in candidate_twins:
-        digits = values[box]
-        # If we arleady have the same digits in a box, we append a new box
-        if digits in naked_twins:
-            naked_twins[digits].append(box)
-        # If we don't have the k,v, we add it
-        else:
-            naked_twins[digits] = [box]
-    # We only use naked twins were we grouped exactly 2 naked twins
-    for dig, boxes in naked_twins:
-        # We only wnat pairs of boxes of 2 digits, not single boxes of 1 digit
-        if(len(boxes) == 2):
-            print('this are my boxes', boxes)
-            # We take the units of each naked twins to remove the digits
-            units_nt1 = [item for sublist in units[boxes[0]] for item in sublist]
-            units_nt2 = [item for sublist in units[boxes[1]] for item in sublist]
-            all_units = set(units_nt1) & set(units_nt2)
-            # We check the diagonals too
-            if box[0] in diagonal_units or box[1] in diagonal_units:
-                all_units = all_units & set(diagonal_units)
-            if box[1] in diagonal_units or box[1] in inv_diagonal_units:
-                all_units = all_units & set(diagonal_units)
-            # We only want to remove the digits from the intersection of the units
-            for box in all_units:
-                if len(values[box])>2:
-                    # Now we remove each digit of the naked twin
-                    #print(peer_box)
-                    for d in dig:
-                        #print(digit)
-                        peer_digits = values[box]
-                        peer_digits.replace(d, '')
-                        values = assign_value(values, box, peer_digits)
-
-
-def naked_twins_fail2(values):
-    """Eliminate values using the naked twins strategy.
-    Args:
-        values(dict): a dictionary of the form {'box_name': '123456789', ...}
-
-    Returns:
-        the values dictionary with the naked twins eliminated from peers.
-    """
-    # NOT USED!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # NOT USED!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # NOT USED!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # NOT USED!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    # Candidate twins are boxes where digits lenght are size 2
-    candidate_twins = [box for box in values.keys() if len(values[box]) == 2]
-    #print('candidates', candidate_twins)
-
-    naked_twins_array = []
-    for box in candidate_twins:
-        candidate_peers = peers[box]
-        for box_cp in candidate_peers:
-            if values[box] == values[box_cp]:
-                naked_twins_array.append([box, box_cp])
-    #print(naked_twins_array)
-    for naked_twin_tuple in naked_twins_array:
-        print(naked_twin_tuple)
-        nt1_box = naked_twin_tuple[0]
-        #print(nt1_box)
-        nt2_box = naked_twin_tuple[1]
-        # We get the peers of the naked twins
-        peers_nt1 = [item for sublist in units[nt1_box] for item in sublist]
-        peers_nt2 = [item for sublist in units[nt2_box] for item in sublist]
-        #print('cosa: ', peers_nt1)
-        # We want to remove the digits form the intersection of the unique pairs of the naked twins
-        # We only want to modify the peers they share, so we get the intersection
-        all_peers = set(peers_nt1) & set(peers_nt2)
-        #print('all_peers', all_peers)
-        for peer_box in all_peers:
-            # We check if the box has more than 1 digit
-            if len(values[peer_box])>2:
-                # Now we remove each digit of the naked twin
-                #print(peer_box)
-                for digit in values[peer_box]:
-                    #print(digit)
-                    peer_digits = values[peer_box]
-                    peer_digits.replace(digit, '')
-                    values = assign_value(values, peer_box, peer_digits)
-    return values
 
 def naked_twins(values):
     """Eliminate values using the naked twins strategy.
@@ -217,6 +137,11 @@ def display(values):
     return
 
 def eliminate(values):
+    """
+    Go through all the boxes, and whenever there is a box with a value, eliminate this value from the values of all its peers.
+    Input: A sudoku in dictionary form.
+    Output: The resulting sudoku in dictionary form.
+    """
     one_digit_boxes = [box for box in values.keys() if len(values[box]) == 1]
     for box in one_digit_boxes:
         single_value = values[box]
@@ -225,6 +150,11 @@ def eliminate(values):
     return values
 
 def only_choice(values):
+    """
+    Go through all the units, and whenever there is a unit with a value that only fits in one box, assign the value to this box.
+    Input: A sudoku in dictionary form.
+    Output: The resulting sudoku in dictionary form.
+    """
     for unit in unitlist:
         for digit in '123456789':
             dplaces = [box for box in unit if digit in values[box]]
@@ -233,6 +163,13 @@ def only_choice(values):
     return values
 
 def reduce_puzzle(values):
+    """
+    Iterate eliminate() and only_choice(). If at some point, there is a box with no available values, return False.
+    If the sudoku is solved, return the sudoku.
+    If after an iteration of both functions, the sudoku remains the same, return the sudoku.
+    Input: A sudoku in dictionary form.
+    Output: The resulting sudoku in dictionary form.
+    """
     stalled = False
     while not stalled:
         # Check how many boxes have a determined value
@@ -255,6 +192,11 @@ def reduce_puzzle(values):
 # This method shall only be used  when values is a sudoku that contains
 # boxes as keys and strings containing number as values. No blanks
 def find_min_box(values):
+    """
+    Method thta returns the box with the min amount of digits in the values dict
+    Input: Rows = 'ABCDEFGHI' and columns = '123456789'
+    Output: List of diagonal boxes
+    """
     # Max value in a box can be 123456789
     min_box = None
     min_value = '123456789'
@@ -265,11 +207,16 @@ def find_min_box(values):
     return min_box
 
 def search(values):
+    """Using depth-first search and propagation, try all possible values.
+    Input: A sudoku in dictionary form.
+    Output: The resulting sudoku in dictionary form."""
+    # First, reduce the puzzle using the previous function
     values = reduce_puzzle(values)
     if values is False:
         return False
     if all(len(values[s]) == 1 for s in boxes):
         return values
+    # Choose the box with the min vlaeu
     s = find_min_box(values)
     # Now use recurrence to solve each one of the resulting sudokus, and
     for value in values[s]:
